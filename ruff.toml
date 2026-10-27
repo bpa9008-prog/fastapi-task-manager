@@ -1,0 +1,9 @@
+target-version = "py312"
+line-length = 88
+# автосгенерированные Alembic-файлы не линтим
+extend-exclude = ["migrations/versions"]
+
+[lint]
+select = ["E", "F", "W", "I", "B", "UP"]
+# B008: Depends(...) в значениях по умолчанию — штатный приём FastAPI
+ignore = ["B008"]

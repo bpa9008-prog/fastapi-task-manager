@@ -7,5 +7,46 @@ services:
       POSTGRES_DB: tasks
     ports: ["5432:5432"]
     volumes: [pgdata:/var/lib/postgresql/data]
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U app -d tasks"]
+      interval: 2s
+      timeout: 3s
+      retries: 15
+
+  # применяет миграции и завершается; app стартует только после успеха
+  migrate:
+    build: .
+    image: ghcr.io/bpa9008-prog/fastapi-task-manager:latest
+    command: ["alembic", "upgrade", "head"]
+    environment:
+      DATABASE_URL: postgresql+asyncpg://app:app@db:5432/tasks
+    depends_on:
+      db:
+        condition: service_healthy
+
+  app:
+    build: .
+    image: ghcr.io/bpa9008-prog/fastapi-task-manager:latest
+    environment:
+      DATABASE_URL: postgresql+asyncpg://app:app@db:5432/tasks
+    ports: ["8000:8000"]
+    depends_on:
+      db:
+        condition: service_healthy
+      migrate:
+        condition: service_completed_successfully
+
+  # тесты в контейнере: docker compose run --rm tests
+  tests:
+    build:
+      context: .
+      target: test
+    profiles: [test]
+    environment:
+      TEST_DATABASE_URL: postgresql+asyncpg://app:app@db:5432/tasks_test
+    depends_on:
+      db:
+        condition: service_healthy
+
 volumes:
   pgdata:
