@@ -12,7 +12,7 @@ RUN pip install -r requirements.txt
 # ---- test: runtime-зависимости + pytest/ruff, для docker compose run tests ----
 FROM builder AS test
 WORKDIR /app
-COPY requirements-dev.txt .
+COPY requirements.txt requirements-dev.txt ./
 RUN pip install -r requirements-dev.txt
 COPY . .
 CMD ["pytest", "-v"]
